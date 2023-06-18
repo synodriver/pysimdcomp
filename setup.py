@@ -44,7 +44,7 @@ extensions = [
         "simdcomp.backends.cython._simdcomp",
         c_sources,
         include_dirs=["./dep/include"],
-        define_macros=[("__AVX512F__", None), ("__AVX2__", None)],
+        define_macros=[("__AVX512F__", None), ("__AVX2__", None), ("__SSE4_1__", None)],
     ),
 ]
 cffi_modules = ["simdcomp/backends/cffi/build.py:ffibuilder"]

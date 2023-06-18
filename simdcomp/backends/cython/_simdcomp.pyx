@@ -4,6 +4,9 @@ from libc.stdint cimport uint8_t, uint32_t, int64_t
 
 from simdcomp.backends.cython cimport simdcomp
 
+AVX512BlockSize = simdcomp.AVX512BlockSize
+AVXBlockSize = simdcomp.AVXBlockSize
+SIMDBlockSize = simdcomp.SIMDBlockSize
 
 cpdef inline uint32_t avx512maxbits(const uint32_t[::1] begin) nogil:
     return simdcomp.avx512maxbits(<const uint32_t *>&begin[0])
@@ -71,6 +74,20 @@ cpdef inline int64_t simdpack_shortlength(const uint32_t[::1] in_,  uint32_t[::1
     cdef int64_t buffer_updated = <uint8_t *> ret - <uint8_t *> &out[0]
     return buffer_updated
 
+cpdef inline int64_t simdunpack_shortlength(const uint32_t[::1] in_,  uint32_t[::1] out, uint32_t bit):
+    cdef const simdcomp.__m128i *ret
+    with nogil:
+        ret = simdcomp.simdunpack_shortlength(<const simdcomp.__m128i *>&in_[0], <int>in_.shape[0], &out[0], bit)
+    cdef int64_t buffer_updated = <uint8_t *> ret - <uint8_t *> &out[0]
+    return buffer_updated
+
+cpdef inline simdfastset(const uint32_t[::1] in_, uint32_t bit, uint32_t value, size_t index):
+    with nogil:
+        simdcomp.simdfastset(<simdcomp.__m128i *>&in_[0], bit, value, index)
+
+cpdef inline uint32_t bits(uint32_t v) nogil:
+    return simdcomp.bits(v)
+
 # array.array np.ndarray memoryview begin: at least 128*sizeof(uint32_t)
 cpdef inline uint32_t maxbits(const uint32_t[::1] begin) nogil:
     return simdcomp.maxbits(<const uint32_t *>&begin[0])
@@ -78,3 +95,66 @@ cpdef inline uint32_t maxbits(const uint32_t[::1] begin) nogil:
 cpdef inline uint32_t maxbits_length(const uint32_t[::1] in_) nogil:
     return simdcomp.maxbits_length(<const uint32_t *>&in_[0], <uint32_t>in_.shape[0])
 
+cpdef inline uint32_t simdmin(const uint32_t[::1] in_) nogil:
+    return simdcomp.simdmin(&in_[0])
+
+cpdef inline uint32_t simdmin_length(const uint32_t[::1] in_) nogil:
+    return simdcomp.simdmin_length(&in_[0], <uint32_t>in_.shape[0])
+
+cpdef inline tuple simdmaxmin_length(const uint32_t[::1] in_):
+    cdef uint32_t tmin, tmax
+    with nogil:
+        simdcomp.simdmaxmin_length(&in_[0],<uint32_t>in_.shape[0], &tmin, &tmax)
+    return tmin, tmax
+
+cpdef inline tuple simdmaxmin(const uint32_t[::1] in_):
+    cdef uint32_t tmin, tmax
+    with nogil:
+        simdcomp.simdmaxmin(&in_[0],  &tmin, &tmax)
+    return tmin, tmax
+
+cpdef inline uint32_t simdmaxbitsd1(const uint32_t[::1] in_, uint32_t initvalue) nogil:
+    return simdcomp.simdmaxbitsd1(initvalue, &in_[0])
+
+cpdef inline uint32_t simdmaxbitsd1_length(const uint32_t[::1] in_, uint32_t initvalue) nogil:
+    return simdcomp.simdmaxbitsd1_length(initvalue, &in_[0], <uint32_t>in_.shape[0])
+
+cpdef inline simdpackFOR(const uint32_t[::1] in_, uint32_t initvalue, uint32_t[::1] out, uint32_t bit):
+    with nogil:
+        simdcomp.simdpackFOR(initvalue, &in_[0], <simdcomp.__m128i *>&out[0], bit)
+
+cpdef inline simdunpackFOR(const uint32_t[::1] in_, uint32_t initvalue, uint32_t[::1] out, uint32_t bit):
+    with nogil:
+        simdcomp.simdunpackFOR(initvalue, <const simdcomp.__m128i *>&in_[0], &out[0], bit)
+
+cpdef inline int simdpackFOR_compressedbytes(int length, uint32_t bit) nogil:
+    return simdcomp.simdpackFOR_compressedbytes(length, bit)
+
+cpdef inline int64_t simdpackFOR_length(const uint32_t[::1] in_, uint32_t initvalue, uint32_t[::1] out, uint32_t bit):
+    cdef simdcomp.__m128i *ret
+    with nogil:
+        ret = simdcomp.simdpackFOR_length(initvalue, &in_[0], <int>in_.shape[0], <simdcomp.__m128i *>&out[0], bit)
+    cdef int64_t buffer_updated = <uint8_t *> ret - <uint8_t *> &out[0]
+    return buffer_updated
+
+cpdef inline int64_t simdunpackFOR_length(const uint32_t[::1] in_, uint32_t initvalue, uint32_t[::1] out, uint32_t bit):
+    cdef const simdcomp.__m128i *ret
+    with nogil:
+        ret = simdcomp.simdunpackFOR_length(initvalue, <const simdcomp.__m128i *>&in_[0], <int>in_.shape[0], &out[0], bit)
+    cdef int64_t buffer_updated = <uint8_t *> ret - <uint8_t *> &out[0]
+    return buffer_updated
+
+cpdef inline uint32_t simdselectFOR(const uint32_t[::1] in_, uint32_t initvalue, uint32_t bit, int slot) nogil:
+    return simdcomp.simdselectFOR(initvalue, <const simdcomp.__m128i *>&in_[0], bit, slot)
+
+cpdef inline simdfastsetFOR(const uint32_t[::1] in_, uint32_t initvalue, uint32_t bit, uint32_t value, size_t index):
+    with nogil:
+        simdcomp.simdfastsetFOR(initvalue, <simdcomp.__m128i *>&in_[0], bit, value, index)
+
+cpdef inline tuple simdsearchwithlengthFOR(const uint32_t[::1] in_, uint32_t initvalue, uint32_t bit, uint32_t key):
+    cdef:
+        int ret
+        uint32_t presult
+    with nogil:
+        ret = simdcomp.simdsearchwithlengthFOR(initvalue, <const simdcomp.__m128i *>&in_[0], bit, <int>in_.shape[0], key, &presult)
+    return ret, presult
